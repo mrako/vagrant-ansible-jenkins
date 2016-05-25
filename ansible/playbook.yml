@@ -3,6 +3,7 @@
   roles:
   - apt
   - base
+  - apache
   - security
   - java
   - jenkins

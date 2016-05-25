@@ -1,0 +1,12 @@
+---
+- name: Install Apache2
+  apt: pkg={{ item }} state=latest
+  notify: Restart Apache
+  with_items:
+    - apache2
+
+- name: Disable default site
+  file:
+    path: "/etc/apache2/sites-enabled/000-default"
+    state: absent
+  notify: Restart Apache
