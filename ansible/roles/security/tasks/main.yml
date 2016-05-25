@@ -1,0 +1,56 @@
+# Security
+# ====================================================
+
+# DEPLOY USER
+# ====================================================
+
+- name: Add deployment user
+  action: user name={{ createuser }} home="/home/{{ createuser }}" shell="/bin/bash"
+
+- name: Add authorized deploy key
+  authorized_key: user={{ createuser }} key='{{ lookup('file', '~/.ssh/id_rsa.pub') }}'
+
+- name: Add deploy user to sudoers
+  action: lineinfile dest=/etc/sudoers regexp='{{ createuser }} ALL' line='{{ createuser }} ALL=(ALL) NOPASSWD:ALL' state=present
+
+#- name: Add postgres user to sudoers
+#  action: lineinfile dest=/etc/sudoers regexp="postgres ALL" line="postgres ALL=(ALL) NOPASSWD:ALL" state=present
+
+- name: Update bashrc
+  lineinfile:
+    dest=/home/deploy/.bashrc
+    line="export RAILS_ENV=production"
+    owner=deploy
+    state=present
+    insertafter=EOF
+    create=no
+
+# MOSH AND FAIL2BAN
+# ====================================================
+
+- name: Install ufw
+  apt: pkg=ufw state=latest
+
+- name: Install mosh
+  apt: pkg=mosh state=latest
+
+- name: Install fail2ban
+  apt: pkg=fail2ban state=latest
+
+# FIREWALL
+# ====================================================
+
+- name: Add ssh to ufw
+  action: shell ufw allow 22
+
+- name: Add http to ufw
+  action: shell ufw allow 80
+
+- name: Add https to ufw
+  action: shell ufw allow 443
+
+- name: Add tomcat to ufw
+  action: shell ufw allow 8080
+
+- name: Enable ufw
+  action: shell echo 'y' | ufw enable
